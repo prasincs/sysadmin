@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+import re
+import os
+
+AVAILABLE_PKGS="/var/lib/dpkg/available"
+packages = []
+pack = re.compile (r"Package:\s+(.+)")
+suggests = re.compile (r"Suggests:\s+(.+)")
+APT_LISTS="/var/lib/apt/lists"
+
+def update_packages(packageFile):
+    with  open (packageFile, "r") as  f:
+        for line in f.readlines():
+            m = pack.match(line)
+            if (m != None):
+                packages.append(m.group(1).strip())
+
+            m = suggests.match(line)
+            if (m!= None):
+                for i in m.group(1).split(","):
+                    if "|" in i:
+                            packages.extend(j.strip() for j in i.split("|"))
+                    else:
+                        packages.append(i.strip())
+
+for root, dirs, files in os.walk(APT_LISTS):
+    for name in files:
+        try:
+            update_packages(root+"/"+name)
+        except IOError:
+            pass
+
+#print packages
+#update_packages(AVAILABLE_PKGS)
+
+with open ("packages", "r") as f:
+    for package in f.readlines():
+        if package.strip() not in packages:
+            print package
+
