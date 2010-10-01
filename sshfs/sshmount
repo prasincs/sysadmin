@@ -1,0 +1,47 @@
+#!/bin/bash
+EXPECTED_ARGS=1
+E_BADARGS=65
+umount=0
+SSHFS=$HOME/bin/sshfs
+if [ ! $# -ge $EXPECTED_ARGS ]; then
+	echo "Usage: `basename $0` {arg}"
+	exit $E_BADARGS
+fi
+if [ ! -e "$HOME/.sshmount.conf" ]; then
+	echo "Need to make ~/.sshmount.conf with the following format"
+	echo "name	server	username	remotedir	localdir	volname"
+	exit 1
+fi
+
+if [ $1 == "-u" ]; then
+	umount=1
+	name=$2
+else
+	name=$1
+fi
+
+line=`awk -v name=$name '/^[^#]/ {if ($1 == name) print $0}' ~/.sshmount.conf`
+x=0
+#I can't remember, but there HAS to be a better way to do this
+for word in $line; do
+	if [ $x -eq "1" ]; then	
+		server=$word
+	elif [ $x -eq "2" ]; then
+		username=$word
+	elif [ $x -eq "3" ]; then
+		remotedir=$word
+	elif [ $x -eq "4" ]; then
+		localdir=$word
+	elif [ $x -eq "5" ]; then
+		volname=$word
+	fi
+	x=$(($x+1))
+done
+#echo $server,$username $remotedir,$localdir,$volname
+if [ $umount -eq "1" ]; then
+	umount $localdir
+	exit 0
+else 
+	MOUNT_ARGS="-oauto_cache,reconnect,volname=$volname,local"
+	$SSHFS $username@$server:$remotedir $localdir $MOUNT_ARGS
+fi

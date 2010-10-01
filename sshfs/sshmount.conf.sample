@@ -1,0 +1,2 @@
+#name	server	username	remotedir	localdir	volname
+name	server.com	username	/home/username	/tmp/mnt	MyVolume
