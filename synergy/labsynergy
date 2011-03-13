@@ -1,0 +1,4 @@
+#!/bin/bash
+
+ssh -N -f -L 24801:localhost:24800 $1.cs.trincoll.edu
+synergyc localhost:24801
