@@ -1,0 +1,44 @@
+#!/bin/bash
+side=${1:-left}
+computerName=${2:-hackbook}
+echo "starting server such that $computerName is on side $side"
+
+if [ $side == "left" ]; then
+cat > ~/synergy.conf <<EOF
+section: screens
+  $HOSTNAME:
+  hackbook:
+end
+section: links
+  $HOSTNAME:
+    left = $computerName
+  $computerName:
+    right = $HOSTNAME
+end
+EOF
+
+else
+cat > ~/synergy.conf <<EOF
+section: screens
+  $HOSTNAME:
+  $computerName:
+end
+section: links
+  $HOSTNAME:
+    right = $computerName
+  $computerName:
+    left = $HOSTNAME
+end
+EOF
+
+fi
+
+
+synergys --config ~/synergy.conf
+if [ "$?" -ne "0" ]; then
+  echo "Server could not be started"
+  exit 1
+else
+  echo "SERVER started"
+fi
+
